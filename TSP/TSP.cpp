@@ -1,62 +1,81 @@
 #include <iostream>
+#include <fstream>
+#include <vector>
 using namespace std;
-// Size of the array a[]
-const int mxN = 1005;
-// Structure to store the x and
-// y coordinates of a point
-struct Coordinates {
-	double x, y;
-} a[mxN];
-// Declare a 2-D dp array
-float dp[mxN][mxN];
-// Function to calculate the
-// distance between two points
-// in a Euclidian plane
-float distance(int i, int j)
+
+struct Point {
+	float x, y;
+};
+
+float distance(int i, int j, vector<Point> a)
 {
-	// Return the distance
 	return sqrt(
 		(a[i].x - a[j].x) * (a[i].x - a[j].x)
 		+ (a[i].y - a[j].y) * (a[i].y - a[j].y));
 }
-// Utility recursive function to find
-// the bitonic tour distance
-float findTourDistance(int i, int j)
+
+
+float findTourDistance(int i, int j, vector<vector<float>>& dp, vector<Point> a)
 {
-	// Memoization
-	if (dp[i][j] > 0)
+	if (dp[i][j] > 0) {
 		return dp[i][j];
-	// Update dp[i][j]
-	dp[i][j] = min(
-		findTourDistance(i + 1, j) + distance(i, i + 1),
-		findTourDistance(i + 1, i) + distance(j, i + 1));
+	}
+
+	float distance1 = findTourDistance(i + 1, j, dp, a) + distance(i, i + 1, a);
+	float distance2 = findTourDistance(i + 1, i, dp, a) + distance(j, i + 1, a);
+	
+	if (distance1 > distance2) {
+		dp[i][j] = distance2;
+	}
+	else {
+		dp[i][j] = distance1;
+	}
+
 	return dp[i][j];
 }
-// Function to find the
-// bitonic tour distance
-void bitonicTSP(int N)
+
+
+
+void TSP(int N, vector<Point> a)
 {
-	// Initialize the dp array
-	memset(dp, 0, sizeof(dp));
-	// Base Case
+	vector<vector<float>> dp(N, vector<float> (N, 0));
+
 	for (int j = 1; j < N - 1; j++)
-		dp[N - 1][j] = distance(N - 1, N)
-		+ distance(j, N);
-	// Print the answer
-	printf("%.2f\n", findTourDistance(1, 1));
+		dp[N - 1][j] = distance(N - 1, N, a)
+		+ distance(j, N, a);
+	cout << findTourDistance(1, 1, dp, a) << endl;
 }
-// Driver Code
-int main()
+
+
+
+int main(int argc, char** argv)
 {
-	// Given Input
-	int N = 6;
-	a[1].x = 0, a[1].y = 8;
-	a[2].x = 2, a[2].y = 12;
-	a[3].x = 3, a[3].y = 9;
-	a[4].x = 5, a[4].y = 0;
-	a[5].x = 6, a[5].y = 6;
-	a[6].x = 7, a[6].y = 12;
-	a[7].x = 8, a[7].y = 0;
-	// Function Call
-	bitonicTSP(N);
+	ifstream fin;
+	int numberOfCities;
+	if (argc != 2) {
+		cout << "Missing a Sample File" << endl;
+		return -1;
+	}
+
+	fin.open(argv[1]);
+
+	if (!fin) {
+		cout << "File could not be opened" << endl;
+		return -2;
+	}
+
+	fin >> numberOfCities;
+	vector<Point> a(numberOfCities + 1);
+	int i;
+	for (i = 1; i <= numberOfCities; i++) 
+	{
+		fin >> a[i].x;
+		fin >> a[i].y;
+	}
+	
+
+	TSP(numberOfCities, a);
+
+	fin.close();
+	return 0;
 }
