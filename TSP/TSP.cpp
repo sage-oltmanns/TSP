@@ -4,16 +4,29 @@
 #include <string>
 using namespace std;
 
+/******************************************************************************
+  * This is a structure which holds the location of a city
+  ****************************************************************************/
 struct Point {
-	float x, y;
+	float x, y;	/**< x and y coordinates of the city */
 };
 
+/******************************************************************************
+  * This is a structure which holds the shortest path of a tour and the 
+  * distance of that path.
+  ****************************************************************************/
 struct bests {
-	float best_distance;
-	string best_path;
+	float best_distance;	/**< the distance of the shortest path */
+	string best_path;		/**< a string which holds the shortest path */
 };
 
-string correctBestPath(string best_path)
+/******************************************************************************
+  * Fixes the indexes of the best path so they can be output.
+  * 
+  * @param best_path A correct path with indexes one too high
+  * @return The corrected path with fixed indexes
+  ****************************************************************************/
+string fixBestPath(string best_path)
 {
 	size_t num_cities = best_path.length();
 	
@@ -27,6 +40,15 @@ string correctBestPath(string best_path)
 	return best_path;
 }
 
+/******************************************************************************
+  * Calculates the distance between two points
+  *
+  * @param i The index of the first point
+  * @param j The index of the second point
+  * @param cities A vector which holds all of the points
+  * 
+  * @return The distance between city i and city j.
+  ****************************************************************************/
 float distance(int i, int j, vector<Point> cities)
 {
 	return sqrt(
@@ -34,7 +56,21 @@ float distance(int i, int j, vector<Point> cities)
 		+ (cities[i].y - cities[j].y) * (cities[i].y - cities[j].y));
 }
 
-
+/******************************************************************************
+  * Recursive function to find the shortest distance and shortest path
+  * to visit each city. Compares a first tour from (i + 1 and j + the 
+  * distance from i and i + 1) and a second tour (i + 1 and i + the distance
+  * from j to i + 1). If the first tour is shorter it updates the best distance
+  * and adds i to the end of the best path. If the second tour is shorter it 
+  * updates the best distance and adds j to the end of the best path.
+  * 
+  * @param i The location it starts from??
+  * @param j The location it comes back from??
+  * @param dp Dynamic programming table which stores the best tour starting at
+  *			  i and coming back from j.
+  * @param cities The vector that holds locations of the cities 
+  * @return The dp location which holds the best distance and the best path.
+  ****************************************************************************/
 bests findTourDistance(int i, int j, vector<vector<bests>>& dp, vector<Point> cities)
 {
 	// If a distance is already in the table return it
@@ -78,6 +114,13 @@ bests findTourDistance(int i, int j, vector<vector<bests>>& dp, vector<Point> ci
 	return dp[i][j];
 }
 
+/******************************************************************************
+  * Reads in all of the points from the input file
+  *
+  * @param fin The input file
+  * @param numberOfCities The number of cities to be read in
+  * @return The vector which holds all of the cities locations
+  ****************************************************************************/
 vector<Point> getCities(ifstream& fin, int numberOfCities)
 {
 	vector<Point> cities(numberOfCities + 1);
@@ -93,6 +136,12 @@ vector<Point> getCities(ifstream& fin, int numberOfCities)
 	return cities;
 }
 
+/******************************************************************************
+  * Outputs the correctly formatted solution to the output file
+  *
+  * @param fout The output file
+  * @param solution A structure which holds the best distance and the best path
+  ****************************************************************************/
 void outputSolution(ofstream& fout, bests solution)
 {
 	size_t num_cities = solution.best_path.length();
@@ -105,21 +154,28 @@ void outputSolution(ofstream& fout, bests solution)
 	fout << endl << solution.best_distance;
 }
 
-bests TSP(int N, vector<Point> cities)
+/******************************************************************************
+  * Finds the distances and paths to the rightmost point and
+  * 
+  * @params
+  * best_path - A correct path with indexes one too high
+  * @return The corrected path with fixed indexes
+  ****************************************************************************/
+bests TSP(int numberOfCities, vector<Point> cities)
 {
-	vector<vector<bests>> dp(N, vector<bests>(N, { 0, "" }));
+	vector<vector<bests>> dp(numberOfCities, vector<bests>(numberOfCities, { 0, "" }));
 
 	// Initialize paths to the rightmost point
-	for (int j = 1; j < N - 1; j++)
+	for (int j = 1; j < numberOfCities - 1; j++)
 	{
-		dp[N - 1][j].best_distance = distance(N - 1, N, cities)
-		+ distance(j, N, cities);
-		dp[N - 1][j].best_path += to_string(j) + to_string(N) +  to_string(N - 1);
+		dp[numberOfCities - 1][j].best_distance = distance(numberOfCities - 1, numberOfCities, cities)
+		+ distance(j, numberOfCities, cities);
+		dp[numberOfCities - 1][j].best_path += to_string(j) + 
+			to_string(numberOfCities) +  to_string(numberOfCities - 1);
 	}
 
 	return findTourDistance(1, 1, dp, cities);
 }
-
 
 
 int main(int argc, char** argv)
@@ -159,10 +215,12 @@ int main(int argc, char** argv)
 
 	bests solution = TSP(numberOfCities, cities);
 
-	solution.best_path = correctBestPath(solution.best_path);
+	solution.best_path = fixBestPath(solution.best_path);
 
 	outputSolution(fout, solution);
+
 	fin.close();
 	fout.close();
+
 	return 0;
 }
