@@ -12,8 +12,9 @@ struct Point {
 };
 
 /******************************************************************************
-  * This is a structure which holds the shortest path of a tour and the 
-  * distance of that path.
+  * This is a structure which holds the shortest path from one point to the end
+  * and the shortest return path from another point to the end.
+  * As well as the total distance of that path.
   ****************************************************************************/
 struct bests {
 	float best_distance;	/**< the distance of the shortest path */
@@ -58,28 +59,28 @@ float distance(int i, int j, vector<Point> cities)
 
 /******************************************************************************
   * Recursive function to find the shortest distance and shortest path
-  * to visit each city. Compares a first tour from (i + 1 and j + the 
-  * distance from i and i + 1) and a second tour (i + 1 and i + the distance
-  * from j to i + 1). If the first tour is shorter it updates the best distance
-  * and adds i to the end of the best path. If the second tour is shorter it 
+  * to visit each city. Compares a first path from (i + 1 and j + the 
+  * distance from i and i + 1) and a second path (i + 1 and i + the distance
+  * from j to i + 1). If the first path is shorter it updates the best distance
+  * and adds i to the end of the best path. If the second path is shorter it 
   * updates the best distance and adds j to the end of the best path.
   * 
-  * @param i The location it starts from??
-  * @param j The location it comes back from??
+  * @param i The point it comes back from
+  * @param j The point it starts from
   * @param dp Dynamic programming table which stores the best tour starting at
   *			  i and coming back from j.
   * @param cities The vector that holds locations of the cities 
   * @return The dp location which holds the best distance and the best path.
   ****************************************************************************/
-bests findTourDistance(int i, int j, vector<vector<bests>>& dp, vector<Point> cities)
+bests getTotalDistance(int i, int j, vector<vector<bests>>& dp, vector<Point> cities)
 {
 	// If a distance is already in the table return it
 	if (dp[i][j].best_distance > 0) 
 		return dp[i][j];
 
 	// Recursive call to find tour distance to add points to a tour
-	float distance1 = findTourDistance(i + 1, j, dp, cities).best_distance + distance(i, i + 1, cities);
-	float distance2 = findTourDistance(i + 1, i, dp, cities).best_distance + distance(j, i + 1, cities);
+	float distance1 = getTotalDistance(i + 1, j, dp, cities).best_distance + distance(i, i + 1, cities);
+	float distance2 = getTotalDistance(i + 1, i, dp, cities).best_distance + distance(j, i + 1, cities);
 	
 	if (distance1 > distance2) {
 		// Check if point j is in the path already
@@ -155,7 +156,8 @@ void outputSolution(ofstream& fout, bests solution)
 }
 
 /******************************************************************************
-  * Finds the distances and paths to the rightmost point and
+  * Finds the distances and paths to the rightmost point and calls the
+  * recursive function to find the shortest path.
   * 
   * @params
   * best_path - A correct path with indexes one too high
@@ -174,7 +176,7 @@ bests TSP(int numberOfCities, vector<Point> cities)
 			to_string(numberOfCities) +  to_string(numberOfCities - 1);
 	}
 
-	return findTourDistance(1, 1, dp, cities);
+	return getTotalDistance(1, 1, dp, cities);
 }
 
 
